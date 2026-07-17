@@ -1,0 +1,2 @@
+# Team rules
+Review everything.

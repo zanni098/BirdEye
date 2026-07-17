@@ -1,0 +1,6 @@
+{
+  // opencode config
+  "mcp": { "playwright": { "type": "local", "command": ["npx", "playwright-mcp"] } },
+  "plugin": ["notify"],
+  "provider": { "openrouter": { "options": { "apiKey": "{env:OPENROUTER_API_KEY}" } } },
+}

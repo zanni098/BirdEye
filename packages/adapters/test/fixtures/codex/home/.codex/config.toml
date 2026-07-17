@@ -1,0 +1,4 @@
+model = "gpt-5"
+[mcp_servers.github]
+command = "npx"
+args = ["-y", "mcp-github"]

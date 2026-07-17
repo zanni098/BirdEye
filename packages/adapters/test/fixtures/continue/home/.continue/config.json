@@ -1,0 +1,4 @@
+{
+  "models": [{ "title": "Sonnet", "provider": "anthropic", "apiKey": "$ANTHROPIC_API_KEY" }],
+  "mcpServers": [{ "name": "github", "command": "npx", "args": ["mcp-github"] }]
+}
