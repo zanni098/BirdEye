@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "github": { "command": "npx mcp-github" },
+    "linear": { "url": "https://mcp.linear.app/sse", "type": "sse" }
+  },
+  "env": {
+    "ANTHROPIC_API_KEY": "sk-test-not-a-real-key",
+    "MY_FLAG": "1"
+  }
+}
