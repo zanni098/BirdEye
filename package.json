@@ -1,0 +1,26 @@
+{
+  "name": "birdeye",
+  "private": true,
+  "version": "0.1.0",
+  "description": "One hub, every bird — local-first mission control for all your AI agent harnesses",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=23.6"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit && npm run typecheck -w apps/dashboard",
+    "build": "npm run build -w apps/dashboard",
+    "up": "node packages/cli/bin/birdeye.ts up",
+    "demo": "node packages/cli/bin/birdeye.ts up --demo"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.1.4"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "@birdeye/adapters",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@birdeye/core": "*",
+    "smol-toml": "^1.3.1"
+  }
+}

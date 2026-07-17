@@ -1,0 +1,16 @@
+{
+  "name": "@birdeye/mcp",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "bin": {
+    "birdeye-mcp": "./bin/birdeye-mcp.ts"
+  },
+  "dependencies": {
+    "@birdeye/core": "*",
+    "@modelcontextprotocol/sdk": "^1.11.0",
+    "zod": "^3.24.2"
+  }
+}
