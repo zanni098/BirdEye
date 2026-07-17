@@ -3,6 +3,7 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { serve } from '@hono/node-server';
 import { createNodeWebSocket } from '@hono/node-ws';
+import { Hono } from 'hono';
 import type { WSContext } from 'hono/ws';
 import { BirdEyeStore, Vault } from '@birdeye/core';
 import { scanAll } from '@birdeye/adapters';
@@ -44,18 +45,19 @@ export async function startServer(opts?: ServerOptions): Promise<{ url: string; 
   };
 
   const distDir = join(import.meta.dirname, '..', '..', '..', 'apps', 'dashboard', 'dist');
+  const app = new Hono();
+  const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({ app });
   const deps: AppDeps = {
     store, vault, demo, home, broadcast,
     scanFn: scanAll,
     distDir: existsSync(distDir) ? distDir : undefined,
+    // Registered inside createApp BEFORE the static catch-all, or GET /ws never upgrades.
+    registerWs: (routedApp) => routedApp.get('/ws', upgradeWebSocket(() => ({
+      onOpen: (_event, ws) => { clients.add(ws); },
+      onClose: (_event, ws) => { clients.delete(ws); },
+    }))),
   };
-  const app = createApp(deps);
-
-  const { injectWebSocket, upgradeWebSocket } = createNodeWebSocket({ app });
-  app.get('/ws', upgradeWebSocket(() => ({
-    onOpen: (_event, ws) => { clients.add(ws); },
-    onClose: (_event, ws) => { clients.delete(ws); },
-  })));
+  createApp(deps, app);
 
   const server = serve({ fetch: app.fetch, hostname: '127.0.0.1', port });
   injectWebSocket(server);

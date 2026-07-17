@@ -16,6 +16,8 @@ export interface AppDeps {
   broadcast: (message: unknown) => void;
   scanFn?: (ctx: { home: string }) => Promise<ScanResult[]>;
   distDir?: string;
+  /** Registers the /ws upgrade route — must run before the static catch-all. */
+  registerWs?: (app: Hono) => void;
 }
 
 const MIME: Record<string, string> = {
@@ -25,8 +27,8 @@ const MIME: Record<string, string> = {
   '.txt': 'text/plain; charset=utf-8',
 };
 
-export function createApp(deps: AppDeps): Hono {
-  const app = new Hono();
+export function createApp(deps: AppDeps, baseApp?: Hono): Hono {
+  const app = baseApp ?? new Hono();
 
   // Demo tasks live in memory so demo mode never touches ~/.birdeye.
   const demoTasks: TaskRecord[] = deps.demo ? structuredClone(DEMO_TASKS) : [];
@@ -146,6 +148,8 @@ export function createApp(deps: AppDeps): Hono {
     const removed = deps.vault.delete(c.req.param('key'));
     return c.json({ ok: removed, keys: deps.vault.list() });
   });
+
+  deps.registerWs?.(app);
 
   // Static dashboard (built SPA) with index.html fallback.
   app.get('*', (c) => {

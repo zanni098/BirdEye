@@ -131,10 +131,12 @@ input:focus, textarea:focus, select:focus { outline: none; border-color: var(--t
 .logo-name b { color: var(--amber); font-weight: 700; }
 .logo-sub { font-family: var(--font-mono); font-size: 9px; color: var(--tx-3); letter-spacing: 0.18em; text-transform: uppercase; }
 
-.nav-item {
+button.nav-item {
   display: flex; align-items: center; gap: 10px;
+  width: 100%; text-align: left;
   padding: 9px 10px; border-radius: 8px;
   color: var(--tx-2); font-size: 13.5px;
+  background: transparent;
   border: 1px solid transparent;
   cursor: pointer; user-select: none;
   font-family: var(--font-display); letter-spacing: 0.03em;

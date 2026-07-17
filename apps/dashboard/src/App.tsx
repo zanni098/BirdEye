@@ -76,14 +76,14 @@ export function App() {
           </div>
         </div>
         {VIEWS.map((item) => (
-          <div
+          <button
             key={item.id}
             className={`nav-item ${view === item.id ? 'active' : ''}`}
             onClick={() => setView(item.id)}
           >
             {item.label}
             <span className="k">{item.key}</span>
-          </div>
+          </button>
         ))}
         <div className="sidebar-foot">
           <div className="scan-line">

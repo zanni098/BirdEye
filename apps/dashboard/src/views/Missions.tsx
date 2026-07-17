@@ -9,11 +9,12 @@ const STATUS_COLOR: Record<TaskRecord['status'], string> = {
 
 function TaskCard({ task, active, onClick }: { task: TaskRecord; active: boolean; onClick: () => void }) {
   return (
-    <div
+    <button
       className="card"
       onClick={onClick}
       style={{
-        padding: '13px 16px', cursor: 'pointer',
+        padding: '13px 16px', cursor: 'pointer', width: '100%', textAlign: 'left',
+        font: 'inherit', letterSpacing: 'normal', display: 'block',
         borderLeft: `3px solid ${STATUS_COLOR[task.status]}`,
         background: active ? 'var(--ink-3)' : undefined,
       }}
@@ -28,7 +29,7 @@ function TaskCard({ task, active, onClick }: { task: TaskRecord; active: boolean
           → {task.assignedHarness}
         </div>
       )}
-    </div>
+    </button>
   );
 }
 
