@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 import { serve } from '@hono/node-server';
+import type { ServerType } from '@hono/node-server';
 import { createNodeWebSocket } from '@hono/node-ws';
 import { Hono } from 'hono';
 import type { WSContext } from 'hono/ws';
@@ -21,6 +22,36 @@ export interface ServerOptions {
 }
 
 const DEFAULT_PORT = 4477;
+
+function isAddressInUseError(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && (error as NodeJS.ErrnoException).code === 'EADDRINUSE';
+}
+
+function waitForServer(server: ServerType, port: number): Promise<void> {
+  if (server.listening) return Promise.resolve();
+
+  return new Promise((resolve, reject) => {
+    const cleanup = () => {
+      server.off('error', onError);
+      server.off('listening', onListening);
+    };
+    const onListening = () => {
+      cleanup();
+      resolve();
+    };
+    const onError = (error: Error) => {
+      cleanup();
+      if (isAddressInUseError(error)) {
+        reject(new Error(`Port ${port} is already in use. Is another BirdEye instance already running? Use --port to pick a different port.`));
+        return;
+      }
+      reject(error);
+    };
+
+    server.once('error', onError);
+    server.once('listening', onListening);
+  });
+}
 
 export async function startServer(opts?: ServerOptions): Promise<{ url: string; close: () => Promise<void> }> {
   const port = opts?.port ?? DEFAULT_PORT;
@@ -61,6 +92,7 @@ export async function startServer(opts?: ServerOptions): Promise<{ url: string; 
 
   const server = serve({ fetch: app.fetch, hostname: '127.0.0.1', port });
   injectWebSocket(server);
+  await waitForServer(server, port);
 
   const url = `http://127.0.0.1:${port}`;
   return {
