@@ -1,9 +1,11 @@
 import { mkdtempSync, rmSync } from 'node:fs';
+import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import type { AddressInfo } from 'node:net';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { BirdEyeStore, Vault } from '@birdeye/core';
-import { createApp } from '../src/app.ts';
+import { createApp, startServer } from '../src/index.ts';
 import { DEMO_SCAN, DEMO_TASKS } from '../src/demo-data.ts';
 
 function demoApp(broadcasts: unknown[] = []) {
@@ -129,6 +131,29 @@ describe('dispatch (demo mode fake runs)', () => {
       });
       expect(response.status).toBe(400);
     } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('server startup', () => {
+  test('reports a friendly error when the requested port is already in use', async () => {
+    const occupyingServer = createServer();
+    await new Promise<void>((resolve) => occupyingServer.listen(0, '127.0.0.1', resolve));
+    const port = (occupyingServer.address() as AddressInfo).port;
+    const dir = mkdtempSync(join(tmpdir(), 'birdeye-server-'));
+
+    try {
+      await expect(startServer({
+        port,
+        demo: true,
+        store: new BirdEyeStore(dir),
+        vault: new Vault({ filePath: join(dir, 'vault.enc'), passphrase: 'test' }),
+      })).rejects.toThrow(`Port ${port} is already in use. Is another BirdEye instance already running? Use --port to pick a different port.`);
+    } finally {
+      await new Promise<void>((resolve, reject) => {
+        occupyingServer.close((error) => { if (error) reject(error); else resolve(); });
+      });
       rmSync(dir, { recursive: true, force: true });
     }
   });
