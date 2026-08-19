@@ -7,7 +7,12 @@ import {
 } from '@birdeye/core';
 import { DEMO_SCAN, DEMO_TASKS } from './demo-data.ts';
 import { startRun } from './dispatcher.ts';
+import { CreateTaskSchema } from "./schemas.ts";
+import { z } from 'zod';
 
+const DispatchBodySchema = z.object({
+  harness: z.string().min(1),
+}).strict();
 export interface AppDeps {
   store: BirdEyeStore;
   vault: Vault;
@@ -82,15 +87,20 @@ export function createApp(deps: AppDeps, baseApp?: Hono): Hono {
   app.get('/api/tasks', (c) => c.json(loadTasks()));
 
   app.post('/api/tasks', async (c) => {
-    const body = await c.req.json<{ title?: string; briefing?: string }>().catch(() => null);
-    if (!body?.title?.trim() || !body.briefing?.trim()) {
-      return c.json({ error: 'title and briefing are required' }, 400);
+    const body = await c.req.json().catch(() => null);
+    const result = CreateTaskSchema.safeParse(body);
+    if (!result.success) {
+      return c.json({ error: 'Validation failed', issues: result.error.issues }, 400);
     }
+    const data = result.data;
     const task: TaskRecord = {
       id: `t-${crypto.randomUUID()}`,
-      title: body.title.trim(), briefing: body.briefing.trim(),
-      status: 'todo', assignedHarness: null,
-      createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
+      title: data.title.trim(),
+      briefing: data.briefing.trim(),
+      status: 'todo',
+      assignedHarness: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       runs: [],
     };
     saveTasks([...loadTasks(), task]);
@@ -99,14 +109,20 @@ export function createApp(deps: AppDeps, baseApp?: Hono): Hono {
   });
 
   app.post('/api/tasks/:id/dispatch', async (c) => {
-    const body = await c.req.json<{ harness?: HarnessKind }>().catch(() => null);
+    const body = await c.req.json().catch(() => null);
+    const result = DispatchBodySchema.safeParse(body);
+    if (!result.success) {
+      return c.json({ error: 'Validation failed', issues: result.error.issues }, 400);
+    }
     const tasks = loadTasks();
     const task = tasks.find((candidate) => candidate.id === c.req.param('id'));
     if (!task) return c.json({ error: 'task not found' }, 404);
     const harness: Harness | undefined = getScan()
-      .map((result) => result.harness)
-      .find((candidate) => candidate.id === body?.harness);
+      .map((scanResult) => scanResult.harness)
+      .find((candidate) => candidate.id === result.data.harness);
     if (!harness) return c.json({ error: 'unknown harness' }, 400);
+    
+    //  guard against non-CLI harnesses in non-demo mode
     if (harness.dispatch?.kind !== 'cli' && !deps.demo) {
       return c.json({ error: `${harness.name} has no headless CLI — copy the briefing into it manually` }, 400);
     }
