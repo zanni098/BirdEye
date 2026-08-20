@@ -1,6 +1,6 @@
 import { basename, join } from 'node:path';
 import {
-  parseMemoryMarkdown,
+  frontmatterField, parseMemoryMarkdown,
   type McpServerRecord, type MemoryRecord, type ScanResult, type SessionRecord,
   type SkillRecord, type PluginRecord, type AgentRecord, type EnvKeyRecord,
 } from '@birdeye/core';
@@ -17,11 +17,6 @@ const MAX_SESSIONS = 500;
 interface SettingsJson {
   mcpServers?: Record<string, { command?: string; url?: string; type?: string }>;
   env?: Record<string, unknown>;
-}
-
-function frontmatterField(md: string, field: string): string | null {
-  const m = md.match(new RegExp(`^${field}:\\s*(.+)$`, 'm'));
-  return m ? (m[1] as string).trim() : null;
 }
 
 function mcpTransport(server: { command?: string; url?: string; type?: string }): McpServerRecord['transport'] {

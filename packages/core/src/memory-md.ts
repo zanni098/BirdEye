@@ -27,6 +27,11 @@ export function extractTags(text: string): string[] {
   return [...tags];
 }
 
+export function frontmatterField(md: string, field: string): string | null {
+  const m = md.match(new RegExp(`^${field}:\\s*(.+)$`, 'm'));
+  return m ? (m[1] as string).trim() : null;
+}
+
 interface Frontmatter { name?: string; description?: string; type?: string; }
 
 /** Minimal frontmatter reader: top-level `key: value` plus `metadata.type` one level deep. */
