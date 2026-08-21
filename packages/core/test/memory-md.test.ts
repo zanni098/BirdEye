@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { extractLinks, extractTags, parseMemoryMarkdown } from '../src/memory-md.ts';
+import { extractLinks, extractTags, frontmatterField, parseMemoryMarkdown } from '../src/memory-md.ts';
 
 const FRONTMATTER_DOC = `---
 name: moviola-project
@@ -57,5 +57,24 @@ describe('extractors', () => {
   });
   test('duplicate links collapse', () => {
     expect(extractLinks('[[a]] and [[a]] and [[b c]]')).toEqual(['a', 'b c']);
+  });
+});
+
+describe('frontmatterField', () => {
+  test('reads a field from a frontmatter document', () => {
+    expect(frontmatterField('description: Greets people', 'description')).toBe('Greets people');
+  });
+
+  test('returns null when the field is absent', () => {
+    expect(frontmatterField('name: demo', 'description')).toBeNull();
+  });
+
+  test('trims whitespace around a field value', () => {
+    expect(frontmatterField('description:   Greets people  ', 'description')).toBe('Greets people');
+  });
+
+  test('finds a field on a later line of multiline frontmatter', () => {
+    const document = '---\nname: demo\ntype: skill\ndescription: Greets people\n---\n';
+    expect(frontmatterField(document, 'description')).toBe('Greets people');
   });
 });

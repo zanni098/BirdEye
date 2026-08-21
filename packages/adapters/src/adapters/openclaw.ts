@@ -1,6 +1,6 @@
 import { basename, join } from 'node:path';
 import {
-  parseMemoryMarkdown,
+  frontmatterField, parseMemoryMarkdown,
   type AgentRecord, type EnvKeyRecord, type MemoryRecord, type ScanResult, type SessionRecord, type SkillRecord,
 } from '@birdeye/core';
 import type { AdapterContext, HarnessAdapter } from '../adapter.ts';
@@ -9,11 +9,6 @@ import { dirExists, fileBirthtime, fileMtime, listDirs, listFiles, safeReadText 
 
 const KIND = 'openclaw' as const;
 const MAX_SESSIONS = 500;
-
-function frontmatterField(md: string, field: string): string | null {
-  const m = md.match(new RegExp(`^${field}:\\s*(.+)$`, 'm'));
-  return m ? (m[1] as string).trim() : null;
-}
 
 function scanMemories(configPath: string): MemoryRecord[] {
   const memories: MemoryRecord[] = [];

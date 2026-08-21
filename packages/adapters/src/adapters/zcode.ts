@@ -1,16 +1,11 @@
 import { basename, join } from 'node:path';
-import { parseMemoryMarkdown, type ScanResult, type SessionRecord, type SkillRecord } from '@birdeye/core';
+import { frontmatterField, parseMemoryMarkdown, type ScanResult, type SessionRecord, type SkillRecord } from '@birdeye/core';
 import type { AdapterContext, HarnessAdapter } from '../adapter.ts';
 import { emptyScanResult, makeHarness } from '../adapter.ts';
 import { fileBirthtime, fileMtime, listDirs, listFiles, safeReadText } from '../fs-utils.ts';
 
 const KIND = 'zcode' as const;
 const MAX_SESSIONS = 500;
-
-function frontmatterField(md: string, field: string): string | null {
-  const m = md.match(new RegExp(`^${field}:\\s*(.+)$`, 'm'));
-  return m ? (m[1] as string).trim() : null;
-}
 
 function scanSkills(configPath: string): SkillRecord[] {
   const skillsDir = join(configPath, 'skills');

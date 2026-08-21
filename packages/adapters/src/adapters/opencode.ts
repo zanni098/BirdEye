@@ -1,6 +1,6 @@
 import { basename, join } from 'node:path';
 import {
-  parseMemoryMarkdown,
+  frontmatterField, parseMemoryMarkdown,
   type EnvKeyRecord, type McpServerRecord, type ScanResult, type SessionRecord, type SkillRecord,
 } from '@birdeye/core';
 import type { AdapterContext, HarnessAdapter } from '../adapter.ts';
@@ -15,11 +15,6 @@ interface OpencodeConfig {
   mcp?: Record<string, { type?: string; command?: string[] | string; url?: string }>;
   plugin?: string[];
   plugins?: string[];
-}
-
-function frontmatterField(md: string, field: string): string | null {
-  const m = md.match(new RegExp(`^${field}:\\s*(.+)$`, 'm'));
-  return m ? (m[1] as string).trim() : null;
 }
 
 /** ~/.local/share/opencode/project/<slug>/storage/session/info/ses_*.json */
