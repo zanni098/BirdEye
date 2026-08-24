@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, test } from 'vitest';
@@ -41,4 +41,15 @@ describe('Vault', () => {
     expect(vault.list()).toEqual(['B_KEY']);
     expect(vault.get('A_KEY')).toBeNull();
   });
+});
+
+test('corrupted vault file throws a vault-prefixed error naming the path', () => {
+  writeFileSync(filePath, '{not-json');
+  expect(() => new Vault({ filePath, passphrase: 'p' }).list()).toThrow(/vault: failed to parse/);
+  expect(() => new Vault({ filePath, passphrase: 'p' }).list()).toThrow(filePath.replace(/\\/g, '\\'));
+});
+
+test('structurally invalid vault file throws', () => {
+  writeFileSync(filePath, JSON.stringify({ version: 2, salt: 'x', entries: [] }));
+  expect(() => new Vault({ filePath, passphrase: 'p' }).list()).toThrow(/vault: invalid structure/);
 });
