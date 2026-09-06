@@ -30,7 +30,30 @@ export class Vault {
     if (!existsSync(this.filePath)) {
       return { version: 1, salt: randomBytes(16).toString('base64'), entries: {} };
     }
-    return JSON.parse(readFileSync(this.filePath, 'utf8')) as VaultFile;
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(readFileSync(this.filePath, 'utf8'));
+    } catch {
+      throw new Error(
+        `vault: failed to parse "${this.filePath}" — file is corrupted or truncated. ` +
+          `Restore a backup or move the file aside and recreate the vault.`,
+      );
+    }
+    if (
+      !parsed ||
+      typeof parsed !== 'object' ||
+      (parsed as VaultFile).version !== 1 ||
+      typeof (parsed as VaultFile).salt !== 'string' ||
+      typeof (parsed as VaultFile).entries !== 'object' ||
+      (parsed as VaultFile).entries === null ||
+      Array.isArray((parsed as VaultFile).entries)
+    ) {
+      throw new Error(
+        `vault: invalid structure in "${this.filePath}" — expected version 1 with salt and entries object. ` +
+          `Restore a backup or move the file aside and recreate the vault.`,
+      );
+    }
+    return parsed as VaultFile;
   }
 
   private save(file: VaultFile): void {
